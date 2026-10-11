@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <filter id="goldShadow" x="-10%" y="-10%" width="125%" height="125%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.5"/>
+    </filter>
+    <linearGradient id="goldTopGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="50%" stop-color="#fde047"/>
+      <stop offset="100%" stop-color="#eab308"/>
+    </linearGradient>
+    <linearGradient id="goldFrontGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ca8a04"/>
+      <stop offset="100%" stop-color="#854d0e"/>
+    </linearGradient>
+  </defs>
+  <!-- Minecraft Gold Ingot (Trapezoidal Ingot Bar) -->
+  <g filter="url(#goldShadow)">
+    <!-- Top Face -->
+    <polygon points="18,18 46,18 54,28 10,28" fill="url(#goldTopGrad)"/>
+    <polygon points="20,20 44,20 50,26 14,26" fill="#fef9c3" opacity="0.6"/>
+
+    <!-- Front Face -->
+    <polygon points="10,28 54,28 50,44 14,44" fill="url(#goldFrontGrad)"/>
+    <!-- Front Face Center Luster -->
+    <polygon points="16,30 48,30 45,41 19,41" fill="#eab308"/>
+
+    <!-- Right Side Face -->
+    <polygon points="46,18 54,28 50,44 44,32" fill="#a16207"/>
+
+    <!-- Left Side Face -->
+    <polygon points="18,18 10,28 14,44 20,32" fill="#d97706"/>
+
+    <!-- Shimmer Highlights -->
+    <line x1="22" y1="21" x2="38" y2="21" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+    <rect x="24" y="32" width="16" height="3" fill="#fef08a" opacity="0.8"/>
+  </g>
+</svg>

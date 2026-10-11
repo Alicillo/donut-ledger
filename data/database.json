@@ -1,0 +1,15 @@
+{
+  "players": [
+    {
+      "username": "Cillops",
+      "uuid": null,
+      "apiKey": "dnt_sec_live_5674aeae479bd114",
+      "isLinked": true,
+      "isPublic": false,
+      "balance": 906824237,
+      "linkedAt": "2026-10-10T23:41:07.438Z",
+      "transactions": [],
+      "lastSync": "2026-10-11T03:08:06.858Z"
+    }
+  ]
+}

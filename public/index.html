@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Donut SMP Economy Ledger | Real-Time Income & Expense Tracker</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/svg+xml" href="/assets/logo.svg">
+</head>
+<body>
+  <!-- Background Glow & Grid Orbs -->
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+  <div class="bg-glow bg-glow-3"></div>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="brand" onclick="navigateTo('dashboard')">
+        <div class="logo-donut">
+          <img src="/assets/logo.svg" alt="Donut SMP Logo" class="brand-logo-img">
+        </div>
+        <div class="brand-text">
+          <div class="brand-title">DONUT <span>LEDGER</span></div>
+          <div class="brand-subtitle" id="navBrandSubtitle">ECONOMY LEDGER & SYNC</div>
+        </div>
+      </div>
+
+      <!-- Quick Player Search in Navbar -->
+      <div class="nav-search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="globalPlayerSearch" placeholder="Search player..." onkeydown="if(event.key==='Enter') searchPlayerGlobal()">
+        <button class="btn btn-xs btn-outline" id="navSearchBtn" onclick="searchPlayerGlobal()">Search</button>
+      </div>
+
+      <div class="nav-tabs">
+        <button class="nav-tab" data-tab="dashboard" onclick="navigateTo('dashboard')">
+          <i class="fa-solid fa-chart-pie"></i> <span id="tabLabelDashboard">Dashboard</span>
+        </button>
+        <button class="nav-tab" data-tab="leaderboard" onclick="navigateTo('leaderboard')">
+          <i class="fa-solid fa-trophy"></i> <span id="tabLabelLeaderboard">Leaderboard</span>
+        </button>
+        <button class="nav-tab active" data-tab="plugin-info" onclick="navigateTo('plugin-info')">
+          <i class="fa-solid fa-plug"></i> <span id="tabLabelMod">Minecraft Mod</span>
+        </button>
+      </div>
+
+      <div class="nav-user-actions">
+        <div class="user-pill" id="navUserPill" onclick="handleNavUserClick()">
+          <img id="navAvatar" src="/api/avatar/MHF_Steve?size=36" alt="Skin">
+          <span id="navUsername">Sign In</span>
+          <i class="fa-solid fa-chevron-down"></i>
+        </div>
+
+        <!-- Language Selector Box -->
+        <div class="lang-selector-container" id="langSelectorContainer">
+          <button class="lang-toggle-btn" id="langToggleBtn" onclick="toggleLangDropdown(event)" title="Language / Dil">
+            <img class="lang-flag-img" id="currentLangFlagImg" src="/assets/flags/us.svg" alt="US Flag">
+            <span class="lang-code" id="currentLangCode">EN</span>
+            <i class="fa-solid fa-chevron-down lang-chevron"></i>
+          </button>
+          <div class="lang-dropdown" id="langDropdown">
+            <div class="lang-option active" id="langOptEn" onclick="setLanguage('en')">
+              <img class="lang-flag-img" src="/assets/flags/us.svg" alt="USA">
+              <span class="lang-label">English</span>
+            </div>
+            <div class="lang-option" id="langOptTr" onclick="setLanguage('tr')">
+              <img class="lang-flag-img" src="/assets/flags/tr.svg" alt="Turkey">
+              <span class="lang-label">Türkçe</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Application Container -->
+  <main class="main-container">
+
+    <!-- View Notice Banner (When inspecting another player or private state) -->
+    <div id="viewBanner" class="view-banner" style="display: none;">
+      <div class="banner-content">
+        <i class="fa-solid fa-globe"></i>
+        <span id="bannerText">Player Profile</span>
+      </div>
+      <button class="btn btn-sm btn-outline" id="bannerReturnBtn" onclick="returnToMyProfile()">
+        <i class="fa-solid fa-arrow-left"></i> <span id="bannerReturnBtnText">Return to My Profile</span>
+      </button>
+    </div>
+
+    <!-- ERROR / NOT LINKED NOTICE CARD (When a searched player hasn't linked the mod) -->
+    <div id="notLinkedCard" class="not-linked-card" style="display: none;">
+      <div class="not-linked-icon">
+        <i class="fa-solid fa-plug-circle-xmark"></i>
+      </div>
+      <div class="not-linked-content">
+        <h3 id="notLinkedTitle">Player Not Found On Web!</h3>
+        <p id="notLinkedMessage">
+          This player has not installed the Donut SMP client mod yet. 
+          Unlinked players do not appear on the ledger.
+        </p>
+        <div class="not-linked-actions">
+          <button class="btn btn-primary btn-sm" onclick="navigateTo('plugin-info')">
+            <i class="fa-solid fa-download"></i> <span id="notLinkedInstallBtnText">How to Install Mod</span>
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="returnToMyProfile()">
+            <i class="fa-solid fa-arrow-left"></i> <span id="notLinkedBackBtnText">Back to My Profile</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 1: DASHBOARD VIEW -->
+    <section id="tab-dashboard" class="tab-content">
+
+      <!-- GUEST / UNLINKED ONBOARDING CARD (When current visitor hasn't linked their own account) -->
+      <div id="unlinkedOnboarding" class="unlinked-onboarding-box" style="display: none;">
+        <div class="onboarding-icon">
+          <i class="fa-solid fa-cube"></i>
+        </div>
+        <div class="onboarding-text">
+          <h3 id="onboardTitle">Welcome to Donut SMP Economy Ledger</h3>
+          <p id="onboardDesc">
+            Your account is not linked yet. Connect your Minecraft account to automatically track your balance, 
+            <code>/ah</code> transactions, <code>/pay</code> transfers, and <code>/orders</code> revenue.
+          </p>
+          <div class="onboarding-steps-mini">
+            <span id="onboardStep1"><strong>1.</strong> Place DonutLedger.jar into your Minecraft <code>mods/</code> folder</span>
+            <span id="onboardStep2"><strong>2.</strong> Type <code>/verify</code> in-game on donutsmp.net to copy your API key</span>
+            <span id="onboardStep3"><strong>3.</strong> Click Sign In on the website and paste your key!</span>
+          </div>
+        </div>
+        <div class="onboarding-action">
+          <button class="btn btn-primary" onclick="openLoginModal()">
+            <i class="fa-solid fa-right-to-bracket"></i> <span id="onboardSignInBtnText">Verify & Sign In</span>
+          </button>
+          <button class="btn btn-outline btn-sm" onclick="navigateTo('plugin-info')">
+            <i class="fa-solid fa-book"></i> <span id="onboardGuideBtnText">Mod Guide</span>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Player Profile Hero Bar -->
+      <div class="player-hero" id="playerHeroCard">
+        <div class="player-hero-left">
+          <div class="avatar-column" style="display: flex; flex-direction: column; align-items: center; flex-shrink: 0;">
+            <div class="avatar-container">
+              <img id="heroAvatar" src="/api/avatar/MHF_Steve?size=120" alt="Player Skin">
+              <div class="online-indicator" id="heroOnlineIndicator" title="Sync Active"></div>
+            </div>
+            <div id="heroModAge" class="hero-mod-age" style="font-size: 0.72rem; color: var(--text-muted); opacity: 0.75; margin-top: 6px; text-align: center; white-space: nowrap; font-weight: 500;"></div>
+          </div>
+          <div class="player-meta">
+            <div class="player-title-row">
+              <h1 id="heroUsername">Not Linked</h1>
+              <div id="heroBadgesRow" style="display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap;"></div>
+              <span id="privacyBadge" class="badge badge-private">
+                <i class="fa-solid fa-lock"></i> <span id="privacyBadgeText">Private</span>
+              </span>
+            </div>
+            <div class="player-submeta">
+              <span id="heroServerLabel"><i class="fa-solid fa-server"></i> Server: <strong>donutsmp.net</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="player-hero-actions" id="ownerActions">
+          <!-- Privacy Toggle Switch -->
+          <div class="privacy-toggle-box" title="Toggle profile visibility to other players">
+            <div class="privacy-toggle-text">
+              <span class="toggle-label" id="heroVisibilityLabel">Profile Visibility</span>
+              <span id="privacySubText" class="toggle-status">Only visible to you</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="privacyCheckbox" onchange="togglePrivacy(this.checked)">
+              <span class="slider round"></span>
+            </label>
+          </div>
+
+          <div class="action-buttons-group">
+            <button class="btn btn-secondary" onclick="copyShareLink()">
+              <i class="fa-solid fa-share-nodes"></i> <span id="heroShareBtnText">Share</span>
+            </button>
+            <button class="btn btn-icon" onclick="openApiKeyModal()" id="heroKeyBtn" title="Minecraft Mod API Key">
+              <i class="fa-solid fa-key"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Metrics Grid -->
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card balance-card">
+          <div class="stat-icon"><i class="fa-solid fa-vault"></i></div>
+          <div class="stat-info">
+            <span class="stat-label" id="statLabelBalance">Total Balance</span>
+            <h2 class="stat-value" id="statBalance">$0</h2>
+            <div class="stat-footer text-emerald" id="statFooterBalance">
+              <i class="fa-solid fa-circle-check"></i> Live Donut SMP /bal
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-card income-card">
+          <div class="stat-icon"><i class="fa-solid fa-arrow-trend-up"></i></div>
+          <div class="stat-info">
+            <span class="stat-label" id="statLabelIncome">Total Income</span>
+            <h2 class="stat-value text-emerald" id="statIncome">+$0</h2>
+          </div>
+        </div>
+
+        <div class="stat-card expense-card">
+          <div class="stat-icon"><i class="fa-solid fa-arrow-trend-down"></i></div>
+          <div class="stat-info">
+            <span class="stat-label" id="statLabelExpense">Total Expenses</span>
+            <h2 class="stat-value text-crimson" id="statExpense">-$0</h2>
+          </div>
+        </div>
+
+        <div class="stat-card cashflow-card">
+          <div class="stat-icon"><i class="fa-solid fa-scale-balanced"></i></div>
+          <div class="stat-info">
+            <span class="stat-label" id="statLabelNetFlow">Net Cash Flow (Profit/Loss)</span>
+            <h2 class="stat-value" id="statNetFlow">$0</h2>
+            <div class="stat-footer" id="statNetFlowFooter">
+              Calculated Net Flow
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Charts Row -->
+      <div class="charts-row" id="chartsRow">
+        <div class="chart-container-card chart-wide">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="fa-solid fa-chart-line"></i> <span id="chartTitleTimeline">Cash Flow Timeline</span>
+            </div>
+            <div class="chart-legend-pills">
+              <span class="pill pill-income"><i class="fa-solid fa-circle"></i> <span id="chartPillIncome">Income</span></span>
+              <span class="pill pill-expense"><i class="fa-solid fa-circle"></i> <span id="chartPillExpense">Expenses</span></span>
+            </div>
+          </div>
+          <div class="chart-canvas-wrapper">
+            <canvas id="timelineChart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-container-card chart-narrow">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="fa-solid fa-chart-pie"></i> <span id="chartTitleCategory">Category Breakdown</span>
+            </div>
+            <span class="badge badge-subtle" id="chartBadgeCategory">Auto Sync</span>
+          </div>
+          <div class="chart-canvas-wrapper">
+            <canvas id="categoryChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transactions Ledger Table Section -->
+      <div class="ledger-card" id="ledgerCard">
+        <div class="ledger-header">
+          <div class="ledger-title-group">
+            <h3 id="ledgerTitle"><i class="fa-solid fa-receipt"></i> Financial Transaction Ledger</h3>
+          </div>
+          <div class="ledger-filters">
+            <!-- Search -->
+            <div class="search-box">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="txSearchInput" placeholder="Search transaction or item..." oninput="filterTransactions()">
+            </div>
+            <!-- Type Filter -->
+            <select id="txTypeFilter" class="select-filter" onchange="filterTransactions()">
+              <option value="all" id="optTypeAll">All Movements</option>
+              <option value="income" id="optTypeIncome">Income Only (+)</option>
+              <option value="expense" id="optTypeExpense">Expenses Only (-)</option>
+              <option value="info" id="optTypeInfo">Order & Event Notifications (ℹ️)</option>
+            </select>
+            <!-- Authentic DonutSMP Category Filter -->
+            <select id="txCategoryFilter" class="select-filter" onchange="filterTransactions()">
+              <option value="all" id="optCatAll">All Donut SMP Categories</option>
+              <option value="Auction House">Auction House (/ah)</option>
+              <option value="Player Transfer">Player Transfer (/pay)</option>
+              <option value="Server Sell">Server Sell (/sell)</option>
+              <option value="Server Shop">Server Shop (/shop)</option>
+              <option value="Orders System">Orders System (/orders)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Table View -->
+        <div class="table-responsive">
+          <table class="ledger-table">
+            <thead>
+              <tr>
+                <th id="thType">TYPE</th>
+                <th id="thDesc">DESCRIPTION / ITEM</th>
+                <th id="thCategory">CATEGORY</th>
+                <th id="thSource">SOURCE</th>
+                <th id="thDate">DATE & TIME</th>
+                <th class="text-right" id="thAmount">AMOUNT</th>
+              </tr>
+            </thead>
+            <tbody id="txTableBody">
+              <!-- Dynamically populated from mod events -->
+            </tbody>
+          </table>
+        </div>
+
+        <div id="txEmptyState" class="empty-state" style="display: none;">
+          <i class="fa-solid fa-receipt fa-2x"></i>
+          <h4 id="txEmptyTitle">No Transactions Found</h4>
+          <p id="txEmptyDesc">No financial movements recorded yet. In-game /ah, /pay, /sell, and /orders events will appear here live.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: LEADERBOARD & DIRECTORY VIEW -->
+    <section id="tab-leaderboard" class="tab-content">
+      <div class="section-hero">
+        <div class="section-hero-title">
+          <i class="fa-solid fa-trophy"></i>
+          <h2 id="leaderboardTitle">Donut SMP Wealth Leaderboard & Public Profiles</h2>
+        </div>
+        <p id="leaderboardSubtitle">
+          Official ranking of active players who have set their profile to <strong>Public</strong>. 
+          Unlinked or private profiles are not displayed.
+        </p>
+      </div>
+
+      <div class="leaderboard-grid" id="leaderboardList">
+        <!-- Dynamically rendered -->
+      </div>
+    </section>
+
+    <!-- TAB 3: MINECRAFT CLIENT MOD INTEGRATION GUIDE -->
+    <section id="tab-plugin-info" class="tab-content active">
+      <div class="plugin-hero-card">
+        <div class="plugin-hero-badge" id="guideHeroBadge">
+          <i class="fa-solid fa-bolt"></i> DONUT SMP CLIENT MOD • FABRIC 1.21.X
+        </div>
+        <h2 id="guideHeroTitle">Automatic Real-Time Economy Synchronization</h2>
+        <p id="guideHeroDesc">
+          The <strong>DonutLedger</strong> Fabric client mod automatically tracks your balance, 
+          <code>/ah</code> auction sales and purchases, <code>/orders</code> fulfillment, <code>/sell</code> server shop sales, 
+          and <code>/pay</code> player transfers on <strong>donutsmp.net</strong> and streams them directly to your personal ledger.
+        </p>
+
+        <!-- 3-Step Setup -->
+        <div class="integration-steps">
+          <div class="step-card">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <h4 id="guideStep1Title">Download & Install Client Mod</h4>
+              <p id="guideStep1Desc">Place <code>DonutLedger.jar</code> into your Minecraft <code>.minecraft/mods/</code> directory and launch the game with Fabric 1.21.x.</p>
+              <div style="margin-top: 12px;">
+                <a href="/download/DonutLedger.jar" download="DonutLedger.jar" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none; padding: 10px 18px; font-weight: 700; border-radius: 10px;">
+                  <i class="fa-solid fa-download"></i> <span id="guideDownloadBtnText">Download DonutLedger.jar (Fabric 1.21.x)</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div class="step-card">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <h4 id="guideStep2Title">Type /verify In-Game</h4>
+              <p id="guideStep2Desc">Join the Donut SMP server (<code>donutsmp.net</code>) and type the command in chat:</p>
+              <div class="code-block">
+                <code>/verify</code>
+              </div>
+              <small class="text-muted" id="guideStep2Subtext">Your unique API key is securely masked in chat and automatically copied to your Windows clipboard.</small>
+            </div>
+          </div>
+
+          <div class="step-card">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <h4 id="guideStep3Title">Sign In on Website</h4>
+              <p id="guideStep3Desc">Click "Sign In" in the top right corner and paste your Minecraft username and API key from your clipboard.</p>
+              <div class="badge badge-emerald" id="guideStep3Badge">
+                <i class="fa-solid fa-shield-check"></i> <span id="guideStep3BadgeText">Secure & Unique Key Authentication</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Server Connection Info -->
+        <div class="server-info-card mt-4">
+          <div class="server-info-item">
+            <span class="info-label" id="guideServerIpLabel">Server IP:</span>
+            <span class="info-value"><code>donutsmp.net</code></span>
+          </div>
+          <div class="server-info-item">
+            <span class="info-label" id="guideModVersionLabel">Mod Version:</span>
+            <span class="info-value">DonutLedger v1.0.0 (Fabric 1.21.x)</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FLOATING ACTION BUTTON FOR ANIMATED CALCULATOR -->
+  <div class="calculator-fab-container">
+    <button class="calculator-fab" id="calcFabBtn" onclick="toggleCalculator()" title="Donut SMP Calculator">
+      <i class="fa-solid fa-calculator"></i>
+      <span class="fab-pulse"></span>
+    </button>
+  </div>
+
+  <!-- FLOATING ANIMATED CALCULATOR WIDGET -->
+  <div class="calc-widget" id="calcWidget">
+    <div class="calc-header">
+      <div class="calc-title">
+        <i class="fa-solid fa-calculator text-emerald"></i>
+        <span id="calcTitleText">DONUT SMP CALCULATOR</span>
+      </div>
+      <button class="calc-close-btn" onclick="toggleCalculator()" id="calcCloseBtn" title="Close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- Screen Display -->
+    <div class="calc-screen">
+      <div class="calc-expression" id="calcExpression">0</div>
+      <div class="calc-result" id="calcResult">= 0</div>
+    </div>
+
+    <!-- Minecraft Quick Stack & Multiplier Helpers -->
+    <div class="calc-mc-helpers">
+      <button class="mc-pill" onclick="calcAppendStack(64)" title="1 Stack (x64 Multiplier)">x64</button>
+      <button class="mc-pill" onclick="calcAppendStack(27)" title="1 Shulker Box (27 Stacks)">x27</button>
+      <button class="mc-pill" onclick="calcAppendStack(1728)" title="Double Chest (1728x Multiplier)">x1728</button>
+      <button class="mc-pill mc-pill-k" onclick="calcAppendMultiplier(1000)" title="1k ($1,000)">k</button>
+      <button class="mc-pill mc-pill-m" onclick="calcAppendMultiplier(1000000)" title="1m ($1,000,000)">m</button>
+    </div>
+
+    <!-- Standard Keypad -->
+    <div class="calc-grid">
+      <button class="calc-btn btn-danger" onclick="calcClear()">C</button>
+      <button class="calc-btn btn-func" onclick="calcBackspace()"><i class="fa-solid fa-delete-left"></i></button>
+      <button class="calc-btn btn-func" onclick="calcAppend('%')">%</button>
+      <button class="calc-btn btn-op" onclick="calcAppend('/')">÷</button>
+
+      <button class="calc-btn" onclick="calcAppend('7')">7</button>
+      <button class="calc-btn" onclick="calcAppend('8')">8</button>
+      <button class="calc-btn" onclick="calcAppend('9')">9</button>
+      <button class="calc-btn btn-op" onclick="calcAppend('*')">×</button>
+
+      <button class="calc-btn" onclick="calcAppend('4')">4</button>
+      <button class="calc-btn" onclick="calcAppend('5')">5</button>
+      <button class="calc-btn" onclick="calcAppend('6')">6</button>
+      <button class="calc-btn btn-op" onclick="calcAppend('-')">−</button>
+
+      <button class="calc-btn" onclick="calcAppend('1')">1</button>
+      <button class="calc-btn" onclick="calcAppend('2')">2</button>
+      <button class="calc-btn" onclick="calcAppend('3')">3</button>
+      <button class="calc-btn btn-op" onclick="calcAppend('+')">+</button>
+
+      <button class="calc-btn btn-zero" onclick="calcAppend('0')">0</button>
+      <button class="calc-btn" onclick="calcAppend('.')">.</button>
+      <button class="calc-btn btn-equals" onclick="calcEvaluate()">=</button>
+    </div>
+  </div>
+
+  <!-- MODALS -->
+
+  <!-- Login / Manage Account Modal -->
+  <div class="modal" id="loginModal">
+    <div class="modal-backdrop" onclick="closeLoginModal()"></div>
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="loginModalTitle"><i class="fa-solid fa-shield-halved"></i> Secure Sign In & Verification</h3>
+        <button class="modal-close" onclick="closeLoginModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc" id="loginModalDesc">
+          To protect your ledger from unauthorized access, enter your <strong>Minecraft username and unique API Key</strong>.
+        </p>
+        <div class="form-group">
+          <label id="loginUserLabel">Minecraft Username</label>
+          <div class="input-with-icon">
+            <i class="fa-solid fa-gamepad"></i>
+            <input type="text" id="loginUsernameInput" placeholder="Minecraft Username" onkeydown="if(event.key==='Enter') submitLogin();">
+          </div>
+        </div>
+        <div class="form-group">
+          <label id="loginKeyLabel">Unique API Key (Required)</label>
+          <div class="input-with-icon" style="position:relative;">
+            <i class="fa-solid fa-key"></i>
+            <input type="password" id="loginApiKeyInput" placeholder="dnt_sec_live_..." autocomplete="off" onkeydown="if(event.key==='Enter') submitLogin();" style="padding-right:38px;">
+            <button type="button" class="btn-icon" id="loginKeyEyeBtn" onclick="toggleLoginKeyVisibility()" title="Show/Hide Key" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:14px; padding:4px;">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+          <small class="text-muted" id="loginKeyHint" style="display:block; margin-top:6px; color:#a78bfa;">
+            <i class="fa-solid fa-info-circle"></i> To get your API Key, type <strong>verify</strong> in-game on donutsmp.net. Your key is automatically copied to your clipboard.
+          </small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="loginCancelBtn" onclick="closeLoginModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitLogin()">
+          <i class="fa-solid fa-right-to-bracket"></i> <span id="loginSubmitBtnText">Sign In</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- API Key Modal -->
+  <div class="modal" id="apiKeyModal">
+    <div class="modal-backdrop" onclick="closeApiKeyModal()"></div>
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="apiKeyModalTitle"><i class="fa-solid fa-key"></i> Minecraft Client Mod Secret API Key</h3>
+        <button class="modal-close" onclick="closeApiKeyModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc" id="apiKeyModalDesc">
+          This secret key pairs your in-game client mod directly with your account. Never share this key with anyone!
+        </p>
+        <div class="key-display-box">
+          <input type="password" id="modalApiKeyValue" readonly>
+          <button class="btn btn-sm btn-outline" id="toggleKeyVisibilityBtn" onclick="toggleKeyVisibility()">
+            <i class="fa-solid fa-eye"></i>
+          </button>
+          <button class="btn btn-sm btn-primary" onclick="copyModalApiKey()">
+            <i class="fa-solid fa-copy"></i> <span id="copyKeyBtnText">Copy</span>
+          </button>
+        </div>
+        <div class="mt-4">
+          <button class="btn btn-xs btn-outline-danger" onclick="regenerateApiKey()">
+            <i class="fa-solid fa-rotate"></i> <span id="regenKeyBtnText">Generate New Key (Revoke Old)</span>
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="closeKeyModalBtn" onclick="closeApiKeyModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Account Dropdown / Logout Modal -->
+  <div class="modal" id="userMenuModal">
+    <div class="modal-backdrop" onclick="closeUserMenuModal()"></div>
+    <div class="modal-dialog modal-dialog-sm" style="max-width: 380px;">
+      <div class="modal-header">
+        <h3 id="userMenuTitle"><i class="fa-solid fa-circle-user"></i> My Account</h3>
+        <button class="modal-close" onclick="closeUserMenuModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body text-center" style="padding: 1.5rem 1.25rem;">
+        <div style="position: relative; width: 80px; height: 80px; margin: 0 auto 0.75rem;">
+          <img id="userMenuAvatar" src="/api/avatar/MHF_Steve?size=80" alt="Skin" style="width: 100%; height: 100%; border-radius: 16px; object-fit: cover; border: 2px solid var(--accent-purple);">
+        </div>
+        <h3 id="userMenuName" style="margin: 0.5rem 0 0.2rem; font-weight: 800; font-size: 1.25rem;">-</h3>
+        
+        <!-- Badges Row in User Menu -->
+        <div id="userMenuBadgesRow" style="display: flex; justify-content: center; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 0.75rem;">
+          <span class="badge badge-emerald" id="mcVerifiedBadge" style="display: inline-flex;">
+            <i class="fa-solid fa-shield-halved"></i> <span id="mcVerifiedBadgeText">Minecraft Verified</span>
+          </span>
+        </div>
+
+        <!-- Custom Themes Selection Section -->
+        <div class="theme-select-box" style="margin: 0.5rem 0 1rem; padding: 0.75rem; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 12px; text-align: left;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <span style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">
+              <i class="fa-solid fa-palette"></i> <span id="themePickerTitle">Custom Theme</span>
+            </span>
+            <span id="activeThemeBadge" style="font-size: 0.72rem; font-weight: 700; color: var(--accent-purple);">Donut Dark</span>
+          </div>
+          <div class="theme-chips-row">
+            <button type="button" class="theme-chip" data-theme="donut-dark" onclick="switchTheme('donut-dark')" title="Donut Dark (Default)">
+              <img src="/assets/themes/donut.svg" alt="Donut" class="theme-logo-img">
+              <span>Donut</span>
+            </button>
+            <button type="button" class="theme-chip" data-theme="obsidian" onclick="switchTheme('obsidian')" title="Obsidian Void">
+              <img src="/assets/themes/obsidian.svg" alt="Obsidian" class="theme-logo-img">
+              <span>Obsidian</span>
+            </button>
+            <button type="button" class="theme-chip" data-theme="emerald" onclick="switchTheme('emerald')" title="Emerald Rich">
+              <img src="/assets/themes/emerald.svg" alt="Emerald" class="theme-logo-img">
+              <span>Emerald</span>
+            </button>
+            <button type="button" class="theme-chip" data-theme="redstone" onclick="switchTheme('redstone')" title="Redstone Power">
+              <img src="/assets/themes/redstone.svg" alt="Redstone" class="theme-logo-img">
+              <span>Redstone</span>
+            </button>
+            <button type="button" class="theme-chip" data-theme="cyber-gold" onclick="switchTheme('cyber-gold')" title="Cyber Gold">
+              <img src="/assets/themes/gold.svg" alt="Gold Ingot" class="theme-logo-img">
+              <span>Gold</span>
+            </button>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+          <button class="btn btn-outline" onclick="closeUserMenuModal(); openApiKeyModal();" style="width: 100%; justify-content: center;">
+            <i class="fa-solid fa-key"></i> <span id="userMenuShowKeyBtnText">Show API Key</span>
+          </button>
+          <button class="btn btn-secondary" onclick="closeUserMenuModal(); returnToMyProfile();" style="width: 100%; justify-content: center;">
+            <i class="fa-solid fa-chart-pie"></i> <span id="userMenuGoProfileBtnText">Go to My Profile</span>
+          </button>
+          <button class="btn btn-danger" onclick="logoutUser()" style="width: 100%; justify-content: center; margin-top: 0.25rem;">
+            <i class="fa-solid fa-right-from-bracket"></i> <span id="userMenuSignOutBtnText">Sign Out</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Left Public Chat Drawer & Toggle Button -->
+  <button id="chatToggleBtn" class="chat-toggle-btn" onclick="togglePublicChat()" title="Global Chat">
+    <div class="chat-toggle-icon">
+      <i class="fa-solid fa-comments"></i>
+      <span id="chatNotificationBadge" class="chat-notification-badge" style="display:none;" title="New message">
+        <span class="chat-ping-ring"></span>
+        <i class="fa-solid fa-bell"></i>
+      </span>
+    </div>
+    <span class="chat-toggle-label">GLOBAL CHAT</span>
+    <span id="chatUnreadDot" class="chat-unread-dot" style="display:none;"></span>
+  </button>
+
+  <aside id="publicChatDrawer" class="public-chat-drawer">
+    <div class="chat-drawer-header">
+      <div class="chat-drawer-title-group">
+        <div class="chat-live-pulse"></div>
+        <div>
+          <h3 id="chatHeaderTitle">PUBLIC CHAT</h3>
+          <span class="chat-header-subtitle">
+            <i class="fa-solid fa-shield-halved"></i> <span id="chatVerifiedOnlyText">Verified Players Only</span>
+          </span>
+        </div>
+      </div>
+      <button class="chat-close-btn" onclick="togglePublicChat(false)" title="Close Chat">
+        <i class="fa-solid fa-chevron-left"></i>
+      </button>
+    </div>
+
+    <!-- Messages Container -->
+    <div class="chat-messages-container" id="chatMessagesContainer">
+      <div id="chatMessagesList" class="chat-messages-list">
+        <!-- Rendered messages will be injected here -->
+      </div>
+    </div>
+
+    <!-- Chat Footer -->
+    <div class="chat-drawer-footer">
+      <div id="chatAuthInputBox" style="display:none;">
+        <div class="chat-input-row">
+          <input type="text" id="chatInputMessage" placeholder="Type a message..." maxlength="200" onkeydown="if(event.key==='Enter') sendChatMessage()">
+          <button class="chat-send-btn" onclick="sendChatMessage()" title="Send">
+            <i class="fa-solid fa-paper-plane"></i>
+          </button>
+        </div>
+        <div class="chat-author-preview">
+          <span><i class="fa-solid fa-user-check"></i> <strong id="chatAuthorName">-</strong></span>
+          <span id="chatCharCounter">200</span>
+        </div>
+      </div>
+
+      <div id="chatLockedNotice" class="chat-locked-notice">
+        <div class="locked-icon"><i class="fa-solid fa-lock"></i></div>
+        <div class="locked-text">
+          <strong id="chatLockedTitle">Read-Only Mode</strong>
+          <p id="chatLockedDesc">Sign in with your Minecraft API Key to chat.</p>
+        </div>
+        <button class="btn btn-xs btn-primary" onclick="openLoginModal()">
+          <i class="fa-solid fa-key"></i> <span id="chatSignInBtnText">Sign In</span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- App Script -->
+  <script src="app.js"></script>
+</body>
+</html>

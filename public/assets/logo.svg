@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <!-- Background Outer Glow -->
+    <filter id="brandGlow" x="-25%" y="-25%" width="150%" height="150%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <radialGradient id="ringGlowGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ec4899" stop-opacity="0.4"/>
+      <stop offset="70%" stop-color="#8b5cf6" stop-opacity="0.1"/>
+      <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Dough Gradient -->
+    <linearGradient id="doughGrad" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#fde047" />
+      <stop offset="35%" stop-color="#f59e0b" />
+      <stop offset="75%" stop-color="#d97706" />
+      <stop offset="100%" stop-color="#92400e" />
+    </linearGradient>
+
+    <!-- Neon Cyberpunk Glaze -->
+    <linearGradient id="glazeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f472b6" />
+      <stop offset="40%" stop-color="#ec4899" />
+      <stop offset="80%" stop-color="#a855f7" />
+      <stop offset="100%" stop-color="#7c3aed" />
+    </linearGradient>
+
+    <!-- Jewel Core Gradient -->
+    <linearGradient id="coreJewel" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="50%" stop-color="#06b6d4" />
+      <stop offset="100%" stop-color="#0284c7" />
+    </linearGradient>
+  </defs>
+
+  <!-- Ambient Outer Glow -->
+  <circle cx="64" cy="64" r="58" fill="url(#ringGlowGrad)" />
+
+  <!-- Outer Rounded Shield / Hex Ring Base -->
+  <rect x="10" y="10" width="108" height="108" rx="30" fill="#0d0b1a" stroke="rgba(168,85,247,0.35)" stroke-width="2" />
+
+  <!-- Inner Subtle Grid Lines for Tech Vibe -->
+  <path d="M 10,64 H 118 M 64,10 V 118" stroke="rgba(255,255,255,0.03)" stroke-width="1.5"/>
+
+  <!-- Donut Dough Ring with Drop Shadow -->
+  <g filter="url(#brandGlow)">
+    <!-- Base Golden Baked Dough -->
+    <path d="M 64,18 
+             C 89.4,18 110,38.6 110,64 
+             C 110,89.4 89.4,110 64,110 
+             C 38.6,110 18,89.4 18,64 
+             C 18,38.6 38.6,18 64,18 Z
+             M 64,43
+             C 52.4,43 43,52.4 43,64
+             C 43,75.6 52.4,85 64,85
+             C 75.6,85 85,75.6 85,64
+             C 85,52.4 75.6,43 64,43 Z"
+          fill="url(#doughGrad)" fill-rule="evenodd" />
+
+    <!-- Neon Pink / Purple Glaze Layer with Wavy Drips -->
+    <path d="M 64,18 
+             C 88,18 108,37 109,61 
+             C 107,67 101,68 98,73 
+             C 95,78 96,85 91,89 
+             C 86,93 80,88 75,93 
+             C 70,98 71,105 64,106 
+             C 57,107 55,98 49,97 
+             C 44,96 40,103 34,98 
+             C 27,93 30,83 25,78 
+             C 20,73 17,70 18,63 
+             C 19,39 39,18 64,18 Z
+             M 64,45
+             C 53.5,45 45,53.5 45,64
+             C 45,74.5 53.5,83 64,83
+             C 74.5,83 83,74.5 83,64
+             C 83,53.5 74.5,45 64,45 Z"
+          fill="url(#glazeGrad)" fill-rule="evenodd" opacity="0.95" />
+
+    <!-- Donut Hole Dark Portal -->
+    <circle cx="64" cy="64" r="19" fill="#090714" stroke="rgba(236,72,153,0.3)" stroke-width="2"/>
+
+    <!-- Central Floating Diamond Star / Ledger Economy Core -->
+    <polygon points="64,51 73,64 64,77 55,64" fill="url(#coreJewel)" />
+    <polygon points="64,55 70,64 64,73 58,64" fill="#a5f3fc" opacity="0.7"/>
+
+    <!-- Cyberpunk Sprinkle Pixels / Jewels -->
+    <!-- Cyan Sprinkle -->
+    <rect x="42" y="27" width="9" height="4" rx="2" fill="#38bdf8" transform="rotate(-25 42 27)" />
+    <!-- Yellow Sprinkle -->
+    <rect x="76" y="25" width="9" height="4" rx="2" fill="#fde047" transform="rotate(35 76 25)" />
+    <!-- Emerald Sprinkle -->
+    <rect x="91" y="47" width="9" height="4" rx="2" fill="#34d399" transform="rotate(65 91 47)" />
+    <!-- White Gold Highlight Sprinkle -->
+    <rect x="85" y="80" width="8" height="4" rx="2" fill="#fef08a" transform="rotate(-40 85 80)" />
+    <!-- Lavender Sprinkle -->
+    <rect x="52" y="93" width="9" height="4" rx="2" fill="#c084fc" transform="rotate(15 52 93)" />
+    <!-- Orange Coral Sprinkle -->
+    <rect x="25" y="73" width="8" height="4" rx="2" fill="#fb923c" transform="rotate(50 25 73)" />
+    <!-- Soft Pink Sprinkle -->
+    <rect x="28" y="45" width="9" height="4" rx="2" fill="#f472b6" transform="rotate(-60 28 45)" />
+
+    <!-- Shimmer Glint Sparkles -->
+    <polygon points="46,20 48,24 52,26 48,28 46,32 44,28 40,26 44,24" fill="#ffffff" opacity="0.95"/>
+    <polygon points="86,88 87,91 90,92 87,93 86,96 85,93 82,92 85,91" fill="#ffffff" opacity="0.85"/>
+  </g>
+</svg>
